@@ -98,7 +98,7 @@ OR (recommended):
 pm2 start server.js --name bcloud-ai
 
 ## 7️⃣ Open in Browser 🌐
-http://localhost:3000
+http://<ip-address>:3000
 
 **🔐 Authentication**
 
