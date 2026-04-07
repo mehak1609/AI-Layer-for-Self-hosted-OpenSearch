@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bCloud AI Search</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+    .header { text-align: center; margin-bottom: 40px; }
+    .header h1 { font-size: 2.5rem; color: #0F3460; }
+    .header p { color: #666; margin-top: 8px; }
+    .login-box { background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .login-box h2 { color: #0F3460; margin-bottom: 20px; text-align: center; }
+    .login-box input { width: 100%; padding: 12px 16px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; margin-bottom: 12px; outline: none; }
+    .login-box input:focus { border-color: #185FA5; }
+    .login-box button { width: 100%; padding: 14px; background: #0F3460; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+    .login-box button:hover { background: #185FA5; }
+    .search-section { display: none; width: 100%; max-width: 700px; }
+    .search-box { display: flex; gap: 12px; margin-bottom: 30px; }
+    .search-box input { flex: 1; padding: 16px 20px; border: 2px solid #ddd; border-radius: 12px; font-size: 1rem; outline: none; }
+    .search-box input:focus { border-color: #185FA5; }
+    .search-box button { padding: 16px 28px; background: #0F3460; color: white; border: none; border-radius: 12px; font-size: 1rem; cursor: pointer; }
+    .result-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; border-left: 4px solid #185FA5; }
+    .result-card h3 { color: #0F3460; margin-bottom: 8px; }
+    .result-card p { color: #444; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 12px; background: #e8f4fd; color: #185FA5; border-radius: 20px; font-size: 0.8rem; margin-top: 10px; }
+    .score { float: right; color: #888; font-size: 0.85rem; }
+    .logout { float: right; padding: 8px 16px; background: #ff4444; color: white; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
+    .error { color: red; text-align: center; margin-top: 8px; font-size: 0.9rem; }
+    .welcome { color: #185FA5; font-weight: bold; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>bCloud AI Search</h1>
+    <p>Enterprise Search powered by OpenSearch</p>
+  </div>
+
+  <!-- Login Box -->
+  <div class="login-box" id="loginBox">
+    <h2>Login Karo</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+    <p class="error" id="loginError"></p>
+  </div>
+
+  <!-- Search Section -->
+  <div class="search-section" id="searchSection">
+    <p class="welcome" id="welcomeMsg"></p>
+    <button class="logout" onclick="logout()">Logout</button>
+    <div class="search-box">
+      <input type="text" id="queryInput" placeholder="Kuch bhi search karo..." onkeypress="if(event.key==='Enter') search()" />
+      <button onclick="search()">Search</button>
+    </div>
+    <div id="results"></div>
+  </div>
+
+  <script>
+    let token = localStorage.getItem('token');
+    if (token) showSearch();
+
+    async function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('username', data.username);
+          showSearch();
+        } else {
+          document.getElementById('loginError').textContent = data.error;
+        }
+      } catch (err) {
+        document.getElementById('loginError').textContent = 'Error: ' + err.message;
+      }
+    }
+
+    function showSearch() {
+      document.getElementById('loginBox').style.display = 'none';
+      document.getElementById('searchSection').style.display = 'block';
+      document.getElementById('welcomeMsg').textContent = 'Welcome, ' + localStorage.getItem('username') + '!';
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      location.reload();
+    }
+
+    async function search() {
+      const query = document.getElementById('queryInput').value.trim();
+      if (!query) return;
+      document.getElementById('results').innerHTML = '<p style="text-align:center;color:#185FA5;">Dhoondh raha hoon...</p>';
+      try {
+        const res = await fetch('/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          },
+          body: JSON.stringify({ query })
+        });
+        const data = await res.json();
+        if (!data.sources || data.sources.length === 0) {
+          document.getElementById('results').innerHTML = '<p style="text-align:center;color:#888;">Koi result nahi mila</p>';
+          return;
+        }
+        document.getElementById('results').innerHTML = data.sources.map(doc => `
+          <div class="result-card">
+            <h3>${doc.title} <span class="score">Score: ${doc.score.toFixed(2)}</span></h3>
+            <p>${doc.content}</p>
+            <span class="badge">${doc.category}</span>
+          </div>
+        `).join('');
+      } catch (err) {
+        document.getElementById('results').innerHTML = '<p style="color:red;">Error: ' + err.message + '</p>';
+      }
+    }
+  </script>
+
+</body>
+</html>

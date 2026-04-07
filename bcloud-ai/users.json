@@ -1,0 +1,16 @@
+{
+  "clients": [
+    {
+      "id": "client1",
+      "username": "client1",
+      "password": "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
+      "anthropic_key": "sk-ant-client1-key-yahan"
+    },
+    {
+      "id": "client2", 
+      "username": "client2",
+      "password": "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
+      "anthropic_key": "sk-ant-client2-key-yahan"
+    }
+  ]
+}	
