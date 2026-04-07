@@ -166,15 +166,15 @@ docker compose down
 docker compose up -d
 
 **🔐 Security Best Practices**
-❌ Never upload .env
-✅ Use .env.example
-🔄 Rotate API keys if exposed
+❌ Never upload .env<br>
+✅ Use .env.example<br>
+🔄 Rotate API keys if exposed<br>
 
 **🎯 Use Cases**
-Enterprise search
-Internal knowledge base
-AI-powered document retrieval
-Semantic search systems
+Enterprise search<br>
+Internal knowledge base<br>
+AI-powered document retrieval<br>
+Semantic search systems<br>
 
 **💡 Author**
 
